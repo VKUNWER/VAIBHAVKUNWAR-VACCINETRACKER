@@ -1,10 +1,6 @@
 # CoWIN Vaccination Slot Availability Tracker Application
 With this Python App you can find available slots in your preferred locations and apply filters as per your choice. Not only this, you can setup Slot Tracker which will keep tracking on your behalf and notify you once your preferred slots are available.
 
-## Features of this Tracker Application
-* You can Find your preferred slots of choosed vaccine name
-* You can start a Tracker for your preferred slots
-* This application will speak up if your preferred slots are available, so you can start the tracker and continue doing your work and as soon as a new slot comes up you'll get notified.
 
 ## Steps to install and use this application
 * Clone this github repository.
@@ -15,7 +11,5 @@ With this Python App you can find available slots in your preferred locations an
 
 ## Please Note
 * This application can only track the slots, in order to book slots please visit : https://selfregistration.cowin.gov.in/
-* Please disconnect if you are connected to any VPN, this app works on Indian IP Addresses 
-
 
 
