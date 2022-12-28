@@ -23,7 +23,8 @@ COLUMNS = {
     'fee':"Fees",
     'available_capacity': "Availability",
     'min_age_limit':"Age",
-    'vaccine':"Vaccine"
+    'vaccine':"Vaccine",
+    'vaccine_name':'Name'
 }
 
 #Request Headers
@@ -66,7 +67,7 @@ def filterSlots(df,vaccine_type,minimum_age):
 
 #Function to fetch pincode based parameters
 def getPincodeFilters():
-    col1, col2, col3 = st.beta_columns(3)
+    col1, col2, col3, col4 = st.beta_columns(4)
     with col1:
         pincode = st.text_input("Enter Pincode","122002")
         st.write('You entered:', pincode)
@@ -74,14 +75,18 @@ def getPincodeFilters():
         vaccine_type = st.selectbox('Vaccine (Free or Paid)',["Any","Free","Paid"])
         st.write('You selected:', vaccine_type)
     with col3:
-        min_age = st.selectbox('Select Minimum Age',['Any',18,45])
-        st.write('You selected:', min_age)
-    return pincode, vaccine_type, min_age
+        min_age = st.selectbox("Select Minimum Age",["Any",18,45])
+        st.write("You selected:", min_age)
+    with col4:
+        vaccine_Name = st.selectbox('Select Vaccine Name',["Any","COVISHIELD","COVAXIN","CORBEVAX"])
+        st.write('You selected:', vaccine_Name)
+    return pincode, vaccine_type, min_age,vaccine_Name
+
         
         
 #Function to fetch district based parameters
 def getDistrictFilters(location_dict):
-    col1, col2, col3, col4 = st.beta_columns(4)
+    col1, col2, col3, col4 ,col5 = st.beta_columns(5)
     with col1:
         state = st.selectbox('State',list(location_dict.keys()))
         st.write('You selected:', state)
@@ -95,11 +100,14 @@ def getDistrictFilters(location_dict):
     with col4:
         min_age = st.selectbox('Select Minimum Age',['Any',18,45])
         st.write('You selected:', min_age)
-    return districtID, vaccine_type, min_age
+    with col5:
+        vaccine_Name = st.selectbox('Select vaccine name',["Any","COVISHIELD","COVAXIN","CORBEVAX"])
+        st.write('You selected vaccine name:', vaccine_Name)
+    return districtID, vaccine_type , min_age, vaccine_Name
     
 
 #Function to track slots 
-def trackSlots(identifier, vaccine_type, min_age, date, option):
+def trackSlots(identifier, vaccine_type, min_age, date,vaccine_name, option):
     if option == "Pincode":
         URL = URL_PINCODE
     else:
@@ -114,7 +122,7 @@ def trackSlots(identifier, vaccine_type, min_age, date, option):
         slots = json.loads(res.text)["sessions"]
         slots_df = pd.DataFrame(slots, columns = COLUMNS.keys())
         slots_df.rename(columns = COLUMNS, inplace = True)
-        slots_df = filterSlots(slots_df, vaccine_type, min_age)
+        slots_df = filterSlots(slots_df, vaccine_type, min_age ,vaccine_name)
         if len(slots_df):
             slt.table(slots_df)
             centres = slots_df["Centre"].unique()
@@ -126,7 +134,7 @@ def trackSlots(identifier, vaccine_type, min_age, date, option):
         time.sleep(10)
 
 #Function to find slots
-def findSlots(identifier, vaccine_type, min_age, date, option):
+def findSlots(identifier, vaccine_type, min_age, date,vaccine_name, option):
     if option == "Pincode":
         URL = URL_PINCODE
     else:
@@ -137,10 +145,16 @@ def findSlots(identifier, vaccine_type, min_age, date, option):
     slots = json.loads(res.text)["sessions"]
     slots_df = pd.DataFrame(slots, columns = COLUMNS.keys())
     slots_df.rename(columns = COLUMNS, inplace = True)
-    slots_df = filterSlots(slots_df, vaccine_type, min_age)
-    if len(slots_df):
-        slt.table(slots_df)
-        os.system('say "your preferred slots are available"')
+    slots_df['Name']=vaccine_name
+    slots_df1 = filterSlots(slots_df, vaccine_type, min_age)
+    slots_df2=  slots_df1[slots_df1['Vaccine'] == vaccine_name] 
+    if len(slots_df1):
+     if vaccine_name.upper() in ['ANY']:
+           slt.table(slots_df1)
+           os.system('say "your preferred slots are available"')
+     else:
+           slt.table(slots_df2)
+           os.system('say "your preferred slots are available"')
     else:
         slt.error('No slots available for your preference, please start a tracker to keep you notified.')
 
@@ -162,9 +176,9 @@ if __name__ == "__main__":
         st.write('You selected:', date)
 
     if option == "Pincode":
-        identifier, vaccine_type, min_age = getPincodeFilters()
+        identifier, vaccine_type, min_age , vaccine_name = getPincodeFilters()
     else:
-        identifier, vaccine_type, min_age = getDistrictFilters(location_dict)
+        identifier, vaccine_type, min_age , vaccine_name = getDistrictFilters(location_dict)
     
     _,col1,col2,_ = st.beta_columns([4, 1, 1, 4])
     with col1:
@@ -173,9 +187,7 @@ if __name__ == "__main__":
         track_slots =  st.button('Track Slots')
 
     if find_slots:
-        findSlots(identifier, vaccine_type, min_age, date, option)
+        findSlots(identifier, vaccine_type, min_age, date,vaccine_name, option)
         
     if track_slots:
-        trackSlots(identifier, vaccine_type, min_age, date, option)
-
-
+        trackSlots(identifier, vaccine_type, min_age, date,vaccine_name, option)
